@@ -33,7 +33,7 @@ def learn(X, y, impurity_measure='entropy', prune=False, pruning_size=0.2):
     return tree
 
 # Perform the ID3 algorithm
-def id3(X, y, impurity_measure):
+def id3(X, y, impurity_measure, max_features=None):
     node = TreeNode()
     unique_labels = np.unique(y)
 
@@ -48,7 +48,7 @@ def id3(X, y, impurity_measure):
         return node
     
     # Else, find the split with most information gain
-    gain, best_feature, best_val = best_split(X, y, impurity_measure)
+    gain, best_feature, best_val = best_split(X, y, impurity_measure, max_features)
 
     # If no gain, return node with the majority label
     if gain == 0:
@@ -59,8 +59,8 @@ def id3(X, y, impurity_measure):
     
     # Split data on best split and recurse
     left_data_X, left_data_y, right_data_X, right_data_y = splitter(X, y, best_feature, best_val)
-    left_tree = id3(left_data_X, left_data_y, impurity_measure)
-    right_tree = id3(right_data_X, right_data_y, impurity_measure)
+    left_tree = id3(left_data_X, left_data_y, impurity_measure, max_features)
+    right_tree = id3(right_data_X, right_data_y, impurity_measure, max_features)
 
     # Assign and attach subtrees on back-recursion
     node.split_feature = best_feature
@@ -71,7 +71,7 @@ def id3(X, y, impurity_measure):
     return node
 
 # Calculate the best split based on the best information gain
-def best_split(X, y, impurity_measure):
+def best_split(X, y, impurity_measure, max_features=None):
 
     # If data is empty, return none
     if len(X) == 0 or len(y) == 0:
@@ -92,6 +92,10 @@ def best_split(X, y, impurity_measure):
     impurity_val = impurity_function(y)
 
     feature_count = np.shape(X)[1]
+    features = np.arange(feature_count)
+
+    if max_features is not None:
+        features = np.random.choice(features, max_features, replace=False)
 
     # Iterate over every feature
     for feature in range(feature_count):
